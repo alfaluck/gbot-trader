@@ -90,6 +90,7 @@ SIZE_ORDERS_MARTINGALE              | The size of the orders for Martingale  (fo
 MARTINGALE_TYPE                     | Type Martingale: <br> 1 - exponential <br> 2 - linear | number | 1
 CONTINUE_MARTINGALE_GRID            | To continue the grid Martingale when you restart the bot (**saves the order size**) | boolean | false
 TRADING_PRICE_RANGE                 | Price range allowed for bidding (Example: 3000/5000)<br>If not specified, no restrictions | string | -
+TRADING_PRICE_RANGE_PERCENT         | Percent to automatically create a range of prices allowed for bidding<br>If not specified, no restrictions | number | -
 
 **Important!**
 
@@ -165,9 +166,14 @@ BBANDS_PERIOD                       | Period BBANDS | number | 20
 RSI_PERIOD                          | Period RSI | number | 14
 RSI_RANGE_SELL                      | RSI range for sell <br> Values are specified in the format **start/end** of the range. | string | 70/100
 RSI_RANGE_BUY                       | RSI range for buy | string | 1/30
-BBANDS_INTERVAL                     | Interval of interrogation of the prices (minutes) | number | 1
+BBANDS_INTERVAL                     | Time-frame. Interval of interrogation of the prices (minutes) | number | 1
+SAVE_PRICE_FILE                     | Save price cache to a file  | boolean | false
 
 > If `RSI_PERIOD = 0`, then the indicator is disabled and trading occurs only on the BBANDS indicator!
+
+> If you use the `SAVE_PRICE_FILE` option, you need write access to the directory. Note that if you run the bot and the real **market prices are different from those in the** file, the original orders may get wrong and **sell at a loss!**
+
+> The parameter `SAVE_PRICE_FILE` **will not work** on PaaS platforms (Heroku, Pivotal and any other platforms where container virtualization tools are used)!
 
 #### Strategy "One Orders"
 **When you start the strategy of "Sell One, Buy a lot" the initial state of the balance of the base currency in the pair is ignored!**
@@ -187,8 +193,10 @@ CYCLES_AUTO_EXIT                    | How many cycles to make the exit | number 
 STOP_LOSS_PERCENT                   | Stop Loss percentage | number | 0
 TRAILING_STOP_PERCENT               | Trailing stop percentage | number | 0
 DISABLE_CAPITALIZATION              | Disable capitalization in profit order | boolean | false
+PERMANENT_DEPOSIT                   | Use the calculation of the total deposit with the cache (Experimental) | boolean | false
 STRATEGY_AUTO_REVERS                | Auto switching strategy to reverse | boolean | false
 OFFSET_LAST_ORDER_PERCENT           | The percentage of the price distance from the last order to enable auto-switching of strategy | number | 5
+DELAY_TIME_CYCLES                   | The delay in seconds before the start of a new cycle after the execution of a profit order  | number | 0
 
 
 > If the parameter **INTEGRITY_CONTROL_ORDERS** in `hard` mode, then a sell order will be installed only if the volume installed and executed buy orders will be the same.
@@ -250,11 +258,25 @@ $ npm start
 
 For **Windows**
 
+Create a **start.bat** file, specify the necessary parameters in it and run this file.
 ```
 SET TELEGRAM_TOKEN=110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw 
 SET TELEGRAM_ID=12345678
 ....
+
 npm start
+pause
+```
+
+For **Linux and Mac**
+
+Create a **start.sh** file, specify the necessary parameters in it and run this file.
+```
+export TELEGRAM_TOKEN=110201543:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw 
+export TELEGRAM_ID=12345678
+...
+
+node ./build/server
 ```
 
 For **Heroku**
@@ -271,13 +293,14 @@ To **launch the control panel** in a Telegram, send a message to:
 
 #### Additional commands in Telegram:
 ```
-/info - list of all commands
+/info               - list of all commands
 
 /version            - The version of the bot
 /params             - Parameters which can be changed via Telegram
 /config             - Is a possible configuration parameters via a configuration file
 /martin [cache]     - A theoretical calculation of the orders of the martingale (parameters are taken from config)
 /ticker coin_name   - Shows a quote of a pair coin_name
+/trade pair         - Switches to the specified trading pair
 /stop [codeExit]    - The application shutsdown. codeExit - an optional exit code.
 /sell_all           - Sell on the market immediately. (Attention: The sale will be made without confirmation!)
 /restart            - Restart GBot Trader
